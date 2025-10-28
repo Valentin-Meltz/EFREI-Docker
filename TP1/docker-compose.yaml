@@ -2,9 +2,9 @@ services:
   database:
       build: "db"
       environment:
-        - POSTGRES_DB=db
-        - POSTGRES_USER=usr
-        - POSTGRES_PASSWORD=pwd
+        - POSTGRES_DB=${DATABASE_DB}
+        - POSTGRES_USER=${DATABASE_USERNAME}
+        - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       volumes:
         - db-volume:/var/lib/postgresql/data
       networks: 
@@ -18,26 +18,30 @@ services:
   simple-api:
       build: "simple-api"
       environment:
-        - DATABASE_URL=jdbc:postgresql://database:5432/db
-        - DATABASE_USERNAME=usr
-        - DATABASE_PASSWORD=pwd
-        - DATABASE_DB=db
+        - DATABASE_URL=jdbc:postgresql://database:5432/${DATABASE_DB}
+        - DATABASE_USERNAME=${DATABASE_USERNAME}
+        - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+        - DATABASE_DB=${DATABASE_DB}
       depends_on:
         - database
       networks:
         - app-network
+        - proxy-network
 
   httpd:
       build: "http-server"
+      environment:
+        - BACKEND=${BACKEND}
       ports:
-        - "81:80"
+        - "80:80"
       depends_on:
         - simple-api
       networks:
-        - app-network
+        - proxy-network
 
 networks:
   app-network:
+  proxy-network:
 
 volumes:
   db-volume:
